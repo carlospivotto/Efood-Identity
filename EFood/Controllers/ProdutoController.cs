@@ -78,8 +78,19 @@ namespace EFood.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(produto);
-                await _context.SaveChangesAsync();
+                /* Regras de negócio serão alteradas 
+                 * para não referenciar mais o banco de dados diretamente.
+                 * Solução: chamar a API de Produtos em ProdutoAPIController.cs
+                 */
+                using var cliente = new HttpClient();
+                cliente.BaseAddress = new Uri("https://localhost:44353/");
+
+                //Na escrita, serializamos os dados para convertê-los em json:
+                var input = JsonConvert.SerializeObject(produto);
+                //Convertendo os dados serializados em json:
+                var conteudo = new StringContent(input, System.Text.Encoding.UTF8, "application/json");
+
+                HttpResponseMessage resposta = cliente.PostAsync("api/ProdutoAPI", conteudo).Result;
                 return RedirectToAction(nameof(Index));
             }
             return View(produto);
